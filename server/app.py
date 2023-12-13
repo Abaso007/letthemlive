@@ -102,8 +102,7 @@ def signup():
     if not email or not password:
         return jsonify({'error': 'email and password are required.'}), 400
 
-    user = users_collection.find_one({'email': email})
-    if user:
+    if user := users_collection.find_one({'email': email}):
         return jsonify({'error': 'email already exists. Please try logging in.'}), 400
 
     hashed_password = generate_password_hash(password)
@@ -227,20 +226,16 @@ def api():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists(app.static_folder + '/' + path):
+    if path != "" and os.path.exists(f'{app.static_folder}/{path}'):
         return send_from_directory(app.static_folder, path)
-    else:
-        print(f"Serving index.html from {app.static_folder}")
-        return send_from_directory(app.static_folder, 'index.html')
+    print(f"Serving index.html from {app.static_folder}")
+    return send_from_directory(app.static_folder, 'index.html')
     
     
 
 # Task to keep the server active
 def do_nothing():
     print("Keeping server awake...")
-    # This is where you'd put the task you want to run.
-    # Since you want to do nothing, we'll just pass.
-    pass
 
 def schedule_do_nothing():
     # Schedule do_nothing to be called after 12 minutes (720 seconds)
@@ -427,9 +422,7 @@ class InstagramTool:
 
         # Load session from cache
         session_key = f"{username}_session"
-        session_data = self.cache.get(session_key)
-
-        if session_data:
+        if session_data := self.cache.get(session_key):
             self.client.load_settings_from_object(session_data)
             print("Session loaded from cache")
         else:
@@ -481,8 +474,7 @@ class InstagramTool:
 
         # Check if the target user is already followed
         follow_status_key = f"{username}_follows_{target_username}_true"
-        follow_status = self.cache.get(follow_status_key)
-        if follow_status:
+        if follow_status := self.cache.get(follow_status_key):
             print("User already followed. Skipping follow.")
         else:
             # Check if the follow limit has been reached
@@ -603,21 +595,19 @@ class InstagramTool:
 
     def search_posts_by_keywords(self, tool_input, count=1):
         try:
-            results = self.client.search(tool_input, 'posts', count)
-            return results
+            return self.client.search(tool_input, 'posts', count)
         except Exception as e:
             return f"Error searching posts: {e}"
         
     def generate_comment(self, caption_text):
         prompt = f"Write a unique and engaging comment based on the following Instagram caption: {caption_text}"
-        comment = self.llm(prompt, max_tokens=30)
-        return comment
+        return self.llm(prompt, max_tokens=30)
     
     def get_posts_from_followers(self, tool_input=3):
         try:
             count = int(tool_input)
             following_users = self.client.user_following(self.client.user_id)
-            following_users_ids = [i for i in following_users.keys()]
+            following_users_ids = list(following_users.keys())
             posts = []
 
             # get 1 random post from count(default=3) number of followers
